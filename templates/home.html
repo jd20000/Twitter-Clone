@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home | Twitter Clone</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    
+
+    
+</head>
+<body class="bg-gray-100">
+    <header class="bg-blue-600 text-white p-4"> 
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-bold">Twitter Clone</h1>
+            <nav>
+                <a href="{{ url_for('home') }}" class="px-4 py-2 hover:bg-violet-700 rounded class=bg-black-500 opacity-100 rounded">Home</a>
+                <a  id="profileLink" href="#" class="px-4 py-2 hover:bg-blue-700 rounded">Profile</a>
+                <a href="#" id="logout" class="px-4 py-2 hover:bg-blue-700 rounded">Logout</a>
+            </nav>
+        </div>
+    </header>
+    
+    <main class="container mx-auto mt-6">
+          <!-- Search Form -->
+        <div class="bg-white p-4 rounded shadow mb-6">
+            <h2 class="text-lg font-semibold mb-2">Search</h2>
+            <form id="searchForm">
+                <div class="mb-4">
+                    <input type="text" id="searchQuery" class="w-full border-gray-300 rounded" placeholder="Search users and tweets">
+                </div>
+                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Search</button>
+            </form>
+        </div>
+
+        <!-- Search Results -->
+        <div id="searchResults" class="mt-4" >
+            <!-- Search results will be injected here -->
+        </div>
+        <!-- Tweet Composition Form -->
+        <div class="bg-white p-4 rounded shadow">
+            <h2 class="text-lg font-semibold mb-2">What's happening?</h2>
+            <form id="TweetForm">
+                <div class="mb-4">
+                    <textarea name="tweetContent" class="w-full border-gray-300 rounded" placeholder="What's happening?"></textarea>
+                </div>
+                <div>
+                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded mt-2">Tweet</button>
+                </div>
+            </form>                      
+        </div>
+
+        <!-- Tweets Feed -->
+        <div class="mt-6">
+            <h2 class="text-lg font-semibold mb-2">Home Feed</h2>
+            <div id="tweetsContainer">
+                <!-- Tweets will be injected here -->
+                {% for tweet in tweets %}
+                <div class="bg-white p-4 rounded shadow mb-4">
+                    <p class="font-semibold">{{ tweet.username }}</p>
+                    <p>{{ tweet.content }}</p>
+                    <div class="flex space-x-2 mt-2">
+                        <div class="tweet-actions">
+                        <button class="bg-blue-500 text-white px-2 py-1 rounded">Like</button>
+                        <button class="bg-red-500 text-white px-2 py-1 rounded">Unlike</button>
+                        <button class="bg-green-500 text-white px-2 py-1 rounded">Retweet</button>
+                        <button class="bg-yellow-500 text-white px-2 py-1 rounded">Undo Retweet</button>
+                        <button class="bg-blue-500 text-white px-2 py-1 rounded">Follow</button>
+                        <button class="bg-red-500 text-white px-2 py-1 rounded">Unfollow</button>
+                        </div>
+                    </div>
+                </div> <!-- This closes each tweet's container -->
+                {% endfor %}
+            </div> <!-- This closes the tweetsContainer div -->
+        </div> <!-- This closes the mt-6 div -->
+        
+    </main>
+
+    <script>
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('token');
+
+            if (token) {
+                // Fetch user details to set the profile link dynamically
+                fetch('/api/user', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    },
+                    credentials: 'include'
+                })
+                .then(response => {
+                        if (!response.ok) {
+                            return response.text().then(text => {
+                            throw new Error(`HTTP error ${response.status}: ${text}`);
+                        });
+                    }
+                        return response.json();
+                    })
+                .then(data => {
+                    console.log('Response data:', data); 
+                    if (data.username) {
+                        const profileLink = document.getElementById('profileLink');
+                        console.log(data.username)
+                        profileLink.href = `/profile/${data.username}`;
+                    } else {
+                        console.error('Error: Invalid user data received');
+                    }
+                })                 
+                .catch(error => console.error('Error fetching user details:', error));
+
+                // Handle logout
+                document.getElementById('logout').addEventListener('click', async (event) => {
+                    event.preventDefault();
+                    try {
+                        await fetch('/api/logout', {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                            },
+                            credentials: 'include'
+                        });
+                        localStorage.removeItem('token');
+                        window.location.href = '/'; // Redirect to home or login page
+                    } catch (error) {
+                        console.error('Error logging out:', error);
+                    }
+                });
+            } else {
+                // Handle case when no token is present
+                window.location.href = '/login'; // Redirect to login page
+            }
+        });
+        
+        async function getTweets() {
+    try {
+        const response = await fetch(`/api/tweets`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+
+        
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(tweets.error || 'Error fetching tweets');
+        }
+        const tweets = await response.json();
+       
+
+        // Rendering tweets on the page
+        const tweetContainer = document.getElementById('tweetsContainer');
+        tweetContainer.innerHTML = tweets.map(tweet => `
+            <div class="tweet bg-white p-4 mb-4 rounded shadow-md">
+                <p class="text-gray-800">${tweet.content}</p>
+                <small class="text-gray-600">${tweet.username}</small>
+                <div class="flex space-x-2 mt-2">
+                    <button onclick="likeTweet(${tweet.id})" class="bg-blue-500 text-white px-2 py-1 rounded">Like</button>
+                    <button onclick="unlikeTweet(${tweet.id})" class="bg-red-500 text-white px-2 py-1 rounded">Unlike</button>
+                    <button onclick="retweetTweet(${tweet.id})" class="bg-green-500 text-white px-2 py-1 rounded">Retweet</button>
+                    <button onclick="undoRetweet(${tweet.id})" class="bg-yellow-500 text-white px-2 py-1 rounded">Undo Retweet</button>
+                    <button onclick="followUser(${tweet.user_id})" class="bg-blue-500 text-white px-2 py-1 rounded">Follow</button>
+                    <button onclick="unfollowUser(${tweet.user_id})" class="bg-red-500 text-white px-2 py-1 rounded">Unfollow</button>
+                </div>
+                <small class="text-gray-600">${tweet.created_at}</small>
+            </div>
+        `).join('');
+
+    } catch (error) {
+        console.error('Error fetching tweets:', error);
+    }
+}
+
+            document.addEventListener('DOMContentLoaded', () => {
+            const searchForm = document.getElementById('searchForm');
+            const searchResults = document.getElementById('searchResults');
+
+            searchForm.addEventListener('submit',  async(event) => {
+                event.preventDefault(); // Prevent the form from submitting
+                const query = document.getElementById('searchQuery').value;
+                console.log(`Search query: ${query}`);
+                if (!query) {   
+            searchResults.innerHTML = '<p>Please enter a search query.</p>';
+            return;
+        }
+        try {
+            const response = await fetch(`/api/search/users?query=${encodeURIComponent(query)}`,console.log(`Searching for: ${query}`),
+                console.log(`Fetch URL: /api/search/users?query=${encodeURIComponent(query)}`), {
+                method: 'GET',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP error ${response.status}: ${errorText}`);
+            }
+
+            const users = await response.json();
+            if (users.length > 0) {
+                searchResults.innerHTML = users.map(user => `
+                    <div class="bg-gray-100 p-2 rounded mb-2">
+                        <a href="/profile/${user.username}" class="text-blue-500 hover:underline">${user.username}</a>
+                    </div>
+                `).join('');
+            } else {
+                searchResults.innerHTML = '<p>No users found.</p>';
+       } } catch (error) {
+            console.error('Error performing search:', error);
+            searchResults.innerHTML = `<p>Error fetching search results: ${error.message}</p>`;
+        }
+    });
+});
+
+
+
+
+
+
+            document.getElementById('TweetForm').addEventListener('submit', async (event) => {
+                event.preventDefault();
+                const tweetContent = document.querySelector('[name="tweetContent"]').value;
+                //const token = localStorage.getItem('token');
+
+                try {
+                    const response = await fetch('/api/tweets', {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        },
+                        credentials: 'include',
+                        body: JSON.stringify({ content: tweetContent })
+                    });
+                    if (!response.ok) {
+            return response.text().then(text => {
+                throw new Error(`HTTP error ${response.status}: ${text}`);
+                    });
+                    }
+                        document.querySelector('[name="tweetContent"]').value = '';
+                        getTweets(); // Refresh tweets
+                 
+                    
+                } catch (error) {
+                    console.error('Error posting tweet :', error);
+                }
+            });
+
+           
+        
+
+            async function likeTweet(tweetId) {
+            try {
+                    
+                    const response = await fetch('/api/tweets/like', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                            },
+                        credentials: 'include',
+                            body: JSON.stringify({ tweetId })
+                        });
+                        const result = await response.json();
+                        if (!response.ok) {
+                            throw new Error(result.error);
+                            }
+                        console.log(result.message);
+                        getTweets(); // Refresh tweets
+                        } catch (error) {
+                        console.error('Error liking tweet:', error);
+                    }
+                }
+
+            async function unlikeTweet(tweetId) {
+            try {
+                    const response = await fetch(`/api/tweets/unlike`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                            },
+                        credentials: 'include',
+                        body: JSON.stringify({ tweetId })
+                            });
+                    const result = await response.json();
+                    if (!response.ok) {
+                    throw new Error(result.error);
+                    }
+                    console.log(result.message);
+                    getTweets(); // Refresh tweets
+                    } catch (error) {
+                    console.error('Error unliking tweet:', error);
+                    }
+                    }
+
+
+            async function retweetTweet(tweetId) {
+            try {
+                    const response = await fetch(`/api/tweets/retweet`, {
+                     method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                 },
+                    credentials: 'include',
+                    body: JSON.stringify({ tweetId })
+                    });
+                    const result = await response.json();
+                    if (!response.ok) {
+                     throw new Error(result.error);
+                        }
+                    console.log(result.message);
+                    getTweets(); // Refresh tweets
+                    } catch (error) {
+                    console.error('Error retweeting tweet:', error);
+                    }
+                    }
+
+
+            async function undoRetweet(tweetId) {
+            try {
+                    const response = await fetch(`/api/tweets/undo_retweet`, {
+                    method: 'POST',
+                    headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ tweetId })
+                    });
+                    const result = await response.json();
+                    if (!response.ok) {
+                     throw new Error(result.error);
+                    }
+                    console.log(result.message);
+                    getTweets(); // Refresh tweets
+                    } catch (error) {
+                    console.error('Error undoing retweet:', error);
+                    }
+                }
+
+// FOLLOW UNFOLLOW 
+            
+            async function followUser(userID) {
+                
+                    try {
+                        const response = await fetch('/api/users/follow', {
+                        method: 'POST',
+                        headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        },
+                        credentials: 'include',
+                        body: JSON.stringify({userID})
+                       
+                       
+                        });
+                        console.log(userID)
+                        const result = await response.json();
+                        if (!response.ok) {
+                        throw new Error(result.error);
+                         }
+                        console.log(result.message);
+                        // Optionally, refresh the page or update the UI
+                    } catch (error) {
+                        console.error('Error following user:', error);
+                    }
+                }
+
+                async function unfollowUser(userID) {
+            
+            try {
+                const response = await fetch('/api/users/unfollow', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ userID})
+                });
+                const result = await response.json();
+                if (!response.ok) {
+                    throw new Error(result.error);
+                }
+                console.log(result.message);
+                // Optionally, refresh the page or update the UI
+            } catch (error) {
+                console.error('Error unfollowing user:', error);
+            }
+        }
+
+        
+              
+    </script>
+</body>
+</html>

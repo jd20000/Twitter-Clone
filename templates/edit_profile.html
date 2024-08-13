@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profile</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    <header class="bg-blue-600 text-white p-4"> 
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-bold">Twitter Clone</h1>    
+            <nav>
+                <a href="{{ url_for('home') }}" class="px-4 py-2 hover:bg-blue-700 rounded">Home</a>
+                <a  id="profileLink" href="#" class="px-4 py-2 hover:bg-blue-700 rounded">Profile</a>
+                <a href="#" id="logout" class="px-4 py-2 hover:bg-blue-700 rounded">Logout</a>
+            </nav>
+        </div>
+    </header>
+    <div class="container mx-auto my-12 p-6 bg-white shadow-md rounded-md">
+        <h1 class="text-2xl font-semibold mb-4">Edit Profile</h1>
+
+        <form method="POST" action="{{ url_for('edit_profile', username=user['username']) }}" enctype="multipart/form-data">
+            {{ form.hidden_tag() }} 
+            <div class="form-group">
+                {{ form.username.label }}
+                {{ form.username(class="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form.email.label }}
+                {{ form.email(class="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form.bio.label }}
+                {{ form.bio(class="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form.profile_picture.label }}
+                {{ form.profile_picture(class="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form.submit(class="btn btn-primary") }}
+            </div> 
+            <script>
+        
+                document.addEventListener('DOMContentLoaded', () => {
+                    const token = localStorage.getItem('token');
+        
+                    if (token) {
+                        // Fetch user details to set the profile link dynamically
+                        fetch('/api/user', {
+                            headers: {
+                                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                            },
+                            credentials: 'include'
+                        })
+                        .then(response => {
+                                if (!response.ok) {
+                                    return response.text().then(text => {
+                                    throw new Error(`HTTP error ${response.status}: ${text}`);
+                                });
+                            }
+                                return response.json();
+                            })
+                        .then(data => {
+                            console.log('Response data:', data); 
+                            if (data.username) {
+                                const profileLink = document.getElementById('profileLink');
+                                console.log(data.username)
+                                profileLink.href = `/profile/${data.username}`;
+                            } else {
+                                console.error('Error: Invalid user data received');
+                            }
+                        })                 
+                        .catch(error => console.error('Error fetching user details:', error));
+                
+                // Handle case when no token is present
+                return console.log(error)
+            }
+        });
+                </script>
+        </form>
+    </div>
+</body>
+</html>

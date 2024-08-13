@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ user.username }}'s Profile</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
+</head>
+<body class="bg-black-100">
+    <header class="bg-blue-600 text-white p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-bold">Twitter Clone</h1>    
+            <nav>
+                <nav>
+                    <a href="{{ url_for('home') }}" class="px-4 py-2 hover:bg-blue-700 rounded">Home</a>
+                    <a  id="profileLink" href="#" class="px-4 py-2 hover:bg-blue-700 rounded">Profile</a>                
+                    <a href="#" id="logout" class="px-4 py-2 hover:bg-blue-700 rounded">Logout</a>
+                </nav>                
+            </nav>
+        </div>
+    </header>
+
+    <main class="container mx-auto mt-6">
+        <!-- User Profile -->
+        <div class="bg-white p-6 rounded shadow-lg max-w-4xl mx-auto my-4">
+            <div class="bg-white p-6 rounded shadow-lg max-w-4xl mx-auto my-4">
+                <!-- Profile Picture -->
+                 {% if user.profile_picture %}
+                <img src="{{ user.profile_picture }}" alt="{{ user.username }}'s Profile Picture">
+                    {% else %}
+                <p>No profile picture available.</p>
+                    {% endif %}
+                <div>
+                    <p class="text-xl font-semibold ml-80">{{ user.username }}</p>
+                    <p class="text-gray-700 ml-80">{{ user.email }}</p>
+                </div>
+                <div class="profile-stats">
+                    <p><strong>Followers:</strong> {{ follower_count }}</p>
+                    <p><strong>Following:</strong> {{ following_count }}</p>
+                </div>
+            </div>
+            <div class="ml-6">
+                <a href="{{ url_for('edit_profile', username=user['username']) }}" class="px-4 py-2  bg-blue-500 text-white rounded hover:bg-blue-700 transition duration-200 ease-in-out">Edit Profile</a>
+            </div>           
+        </div>
+        
+    </main>
+    <div class="mt-8">
+        <h2 class="text-xl font-bold">Tweets</h2>
+        <ul class="mt-4">
+            
+
+            
+            {% for tweet in tweets %}
+            <li class="bg-white shadow-md rounded p-4 mt-4">
+            <p>{{ tweet['content'] }}</p>
+            {% if tweet['retweet_user_id'] %}
+            <p class="text-sm text-gray-600">Retweeted by {{ user.username }}</p>
+            {% endif %}
+            <p class="text-sm text-gray-600">Posted on {{ tweet['created_at'] }}</p>
+            </li>
+            {% endfor %}
+
+            
+        </ul>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('token');
+
+            if (token) {
+                // Fetch user details to set the profile link dynamically
+                fetch('/api/user', {  
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    },
+                    credentials: 'include'
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.text().then(text => {
+                            throw new Error(`HTTP error ${response.status}: ${text}`);
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Response data:', data);
+                    if (data.username) {
+                        const profileLink = document.getElementById('profileLink');
+                        console.log(data.username);
+                        profileLink.href = `/profile/${data.username}`;
+                    } else {
+                        console.error('Error: Invalid user data received');
+                    }
+                })
+                .catch(error => console.error('Error fetching user details:', error));
+
+                // Handle logout
+                document.getElementById('logout').addEventListener('click', async (event) => {
+                    event.preventDefault();
+                    try {
+                        await fetch('/api/logout', {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                            },
+                            credentials: 'include'
+                        });
+                        localStorage.removeItem('token');
+                        window.location.href = '/'; // Redirect to home or login page
+                    } catch (error) {
+                        console.error('Error logging out:', error);
+                    }
+                });
+            } else {
+                // Handle case when no token is present
+                window.location.href = '/login'; // Redirect to login page
+            }
+        });
+    </script>
+</body>
+</html>

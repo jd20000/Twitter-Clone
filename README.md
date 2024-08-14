@@ -61,9 +61,6 @@ venv\Scripts\activate
 - **Use Online Markdown Editors**: Tools like [StackEdit](https://stackedit.io/) or [Dillinger](https://dillinger.io/) provide live previews.
 - **Markdown Preview in Editors**: IDEs like VSCode have Markdown preview features built-in.
 
-By following these tips, your `README.md` should display properly on GitHub. If issues persist, you can also directly view the rendered HTML or Markdown to identify specific formatting errors.
-
-
 Configuration
 The application uses a secret key for token generation and verification. You can find and modify it in the app.py file.
 

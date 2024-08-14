@@ -5,9 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home | Twitter Clone</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    
-
-    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">  
 </head>
 <body class="bg-gray-100">
     <header class="bg-blue-600 text-white p-4"> 
@@ -61,12 +59,13 @@
                     <p>{{ tweet.content }}</p>
                     <div class="flex space-x-2 mt-2">
                         <div class="tweet-actions">
-                        <button class="bg-blue-500 text-white px-2 py-1 rounded">Like</button>
-                        <button class="bg-red-500 text-white px-2 py-1 rounded">Unlike</button>
-                        <button class="bg-green-500 text-white px-2 py-1 rounded">Retweet</button>
-                        <button class="bg-yellow-500 text-white px-2 py-1 rounded">Undo Retweet</button>
-                        <button class="bg-blue-500 text-white px-2 py-1 rounded">Follow</button>
-                        <button class="bg-red-500 text-white px-2 py-1 rounded">Unfollow</button>
+                            <div class="tweet-actions flex items-center space-x-4"></div>
+                                <button class="like-button flex items-center text-blue-500 hover:text-blue-700 focus:outline-none"><i class="fa-regular fa-thumbs-up mr-1"></i> Like</button>
+                                <button class="unlike-button flex items-center text-red-500 hover:text-red-700 focus:outline-none"><i class="fa-regular fa-thumbs-down mr-1"></i>Unlike</button>
+                                <button class="retweet-button flex items-center text-green-500 hover:text-green-700 focus:outline-none"><i class="fa-solid fa-retweet mr-1"></i>Retweet</button>
+                                <button class="undo-retweet-button flex items-center text-yellow-500 hover:text-yellow-700 focus:outline-none"><i class="fa-solid fa-undo mr-1"></i>Undo Retweet</button>
+                                <button class="bg-blue-500 text-white px-2 py-1 rounded">Follow</button>
+                                <button class="bg-red-500 text-white px-2 py-1 rounded">Unfollow</button>
                         </div>
                     </div>
                 </div> <!-- This closes each tweet's container -->
@@ -77,43 +76,54 @@
     </main>
 
     <script>
-        
-        document.addEventListener('DOMContentLoaded', () => {
+        //JAVASCRIPT CODE FOR ACCESING CURRENT USER  
+    document.addEventListener('DOMContentLoaded', () =>
+        {
             const token = localStorage.getItem('token');
 
-            if (token) {
+            if (token)
+            {
                 // Fetch user details to set the profile link dynamically
                 fetch('/api/user', {
-                    headers: {
+                    headers: 
+                    {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`,
                     },
                     credentials: 'include'
-                })
-                .then(response => {
+                    })
+                .then(response => 
+                        {
                         if (!response.ok) {
                             return response.text().then(text => {
                             throw new Error(`HTTP error ${response.status}: ${text}`);
                         });
-                    }
-                        return response.json();
-                    })
-                .then(data => {
+            }
+            return response.json();
+        })
+            .then(data => 
+            {
                     console.log('Response data:', data); 
-                    if (data.username) {
+                    if (data.username) 
+                    {
                         const profileLink = document.getElementById('profileLink');
                         console.log(data.username)
                         profileLink.href = `/profile/${data.username}`;
-                    } else {
+                    } 
+                    else 
+                    {
                         console.error('Error: Invalid user data received');
                     }
-                })                 
+            })                 
                 .catch(error => console.error('Error fetching user details:', error));
 
-                // Handle logout
-                document.getElementById('logout').addEventListener('click', async (event) => {
+                // //JAVASCRIPT CODE FOR LOGOUT          
+    document.getElementById('logout').addEventListener('click', async (event) => 
+                {
                     event.preventDefault();
-                    try {
-                        await fetch('/api/logout', {
+                    try 
+                    {
+                        await fetch('/api/logout', 
+                        {
                             method: 'POST',
                             headers: {
                                 'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -122,125 +132,146 @@
                         });
                         localStorage.removeItem('token');
                         window.location.href = '/'; // Redirect to home or login page
-                    } catch (error) {
+                    } 
+                    catch (error) 
+                    {
                         console.error('Error logging out:', error);
                     }
                 });
-            } else {
+            } 
+            else 
+            {
                 // Handle case when no token is present
                 window.location.href = '/login'; // Redirect to login page
             }
         });
         
-        async function getTweets() {
-    try {
-        const response = await fetch(`/api/tweets`, {
-            method: 'GET',
-            headers: {
+        async function getTweets() 
+        {     
+        try{
+            const response = await fetch(`/api/tweets`, {
+                method: 'GET',
+                headers: 
+                {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
-            }
-        });
+                }
+                });
 
         
         
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(tweets.error || 'Error fetching tweets');
-        }
-        const tweets = await response.json();
+            if (!response.ok) 
+            {
+                const errorText = await response.text();
+                throw new Error(tweets.error || 'Error fetching tweets');
+            }
+            const tweets = await response.json();
        
 
-        // Rendering tweets on the page
-        const tweetContainer = document.getElementById('tweetsContainer');
-        tweetContainer.innerHTML = tweets.map(tweet => `
+            // Rendering tweets on the page
+            const tweetContainer = document.getElementById('tweetsContainer');
+            tweetContainer.innerHTML = tweets.map(tweet => `
             <div class="tweet bg-white p-4 mb-4 rounded shadow-md">
                 <p class="text-gray-800">${tweet.content}</p>
                 <small class="text-gray-600">${tweet.username}</small>
                 <div class="flex space-x-2 mt-2">
-                    <button onclick="likeTweet(${tweet.id})" class="bg-blue-500 text-white px-2 py-1 rounded">Like</button>
-                    <button onclick="unlikeTweet(${tweet.id})" class="bg-red-500 text-white px-2 py-1 rounded">Unlike</button>
-                    <button onclick="retweetTweet(${tweet.id})" class="bg-green-500 text-white px-2 py-1 rounded">Retweet</button>
-                    <button onclick="undoRetweet(${tweet.id})" class="bg-yellow-500 text-white px-2 py-1 rounded">Undo Retweet</button>
+                    <button onclick="likeTweet(${tweet.id})" class="like-button flex items-center text-blue-500 hover:text-blue-700 focus:outline-none"><i class="fa-regular fa-thumbs-up mr-1"></i>Like</button>
+                    <button onclick="unlikeTweet(${tweet.id})" class="unlike-button flex items-center text-red-500 hover:text-red-700 focus:outline-none"><i class="fa-regular fa-thumbs-down mr-1"></i>Unlike</button>
+                    <button onclick="retweetTweet(${tweet.id})" class="retweet-button flex items-center text-green-500 hover:text-green-700 focus:outline-none"><i class="fa-solid fa-retweet mr-1"></i>Retweet</button>
+                    <button onclick="undoRetweet(${tweet.id})" class="undo-retweet-button flex items-center text-yellow-500 hover:text-yellow-700 focus:outline-none"><i class="fa-solid fa-undo mr-1"></i>Undo Retweet</button>
                     <button onclick="followUser(${tweet.user_id})" class="bg-blue-500 text-white px-2 py-1 rounded">Follow</button>
                     <button onclick="unfollowUser(${tweet.user_id})" class="bg-red-500 text-white px-2 py-1 rounded">Unfollow</button>
                 </div>
                 <small class="text-gray-600">${tweet.created_at}</small>
             </div>
-        `).join('');
+            `).join('');
 
-    } catch (error) {
+        } 
+        catch (error) 
+        {
         console.error('Error fetching tweets:', error);
-    }
-}
-
-            document.addEventListener('DOMContentLoaded', () => {
+        }
+        }
+            //JAVASCRIPT CODE FOR SEARCH BAR
+        document.addEventListener('DOMContentLoaded', () => 
+        {
             const searchForm = document.getElementById('searchForm');
             const searchResults = document.getElementById('searchResults');
 
-            searchForm.addEventListener('submit',  async(event) => {
+            searchForm.addEventListener('submit',  async(event) =>
+            {
                 event.preventDefault(); // Prevent the form from submitting
                 const query = document.getElementById('searchQuery').value;
                 console.log(`Search query: ${query}`);
-                if (!query) {   
-            searchResults.innerHTML = '<p>Please enter a search query.</p>';
-            return;
-        }
-        try {
-            const response = await fetch(`/api/search/users?query=${encodeURIComponent(query)}`,console.log(`Searching for: ${query}`),
-                console.log(`Fetch URL: /api/search/users?query=${encodeURIComponent(query)}`), {
-                method: 'GET',
-                credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+
+                if (!query)
+                {   
+                    searchResults.innerHTML = '<p>Please enter a search query.</p>';
+                    return;
                 }
+                try {
+                    const response = await fetch(`/api/search/users?query=${encodeURIComponent(query)}`,console.log(`Searching for: ${query}`),
+                    console.log(`Fetch URL: /api/search/users?query=${encodeURIComponent(query)}`), {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: 
+                    {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
             });
 
-            if (!response.ok) {
+            if (!response.ok) 
+            {
                 const errorText = await response.text();
                 throw new Error(`HTTP error ${response.status}: ${errorText}`);
             }
 
             const users = await response.json();
-            if (users.length > 0) {
+            if (users.length > 0) 
+            {
                 searchResults.innerHTML = users.map(user => `
                     <div class="bg-gray-100 p-2 rounded mb-2">
                         <a href="/profile/${user.username}" class="text-blue-500 hover:underline">${user.username}</a>
                     </div>
                 `).join('');
-            } else {
+            } 
+            else 
+            {
                 searchResults.innerHTML = '<p>No users found.</p>';
-       } } catch (error) {
-            console.error('Error performing search:', error);
-            searchResults.innerHTML = `<p>Error fetching search results: ${error.message}</p>`;
-        }
-    });
-});
-
-
-
-
-
-
-            document.getElementById('TweetForm').addEventListener('submit', async (event) => {
+            } 
+            } 
+            catch (error) 
+            {
+                console.error('Error performing search:', error);
+                searchResults.innerHTML = `<p>Error fetching search results: ${error.message}</p>`;
+            }
+        });
+        });         //JAVASCRIPT CODE FOR HANDLING TWEETS 
+            document.getElementById('TweetForm').addEventListener('submit', async (event) => 
+            {
                 event.preventDefault();
                 const tweetContent = document.querySelector('[name="tweetContent"]').value;
                 //const token = localStorage.getItem('token');
 
-                try {
-                    const response = await fetch('/api/tweets', {
+                try 
+                {
+                    const response = await fetch('/api/tweets', 
+                    {
                         method: 'POST',
-                        headers: { 
+                        headers: 
+                        { 
                             'Content-Type': 'application/json',
                             'Authorization': `Bearer ${localStorage.getItem('token')}`
                         },
                         credentials: 'include',
                         body: JSON.stringify({ content: tweetContent })
                     });
-                    if (!response.ok) {
-            return response.text().then(text => {
-                throw new Error(`HTTP error ${response.status}: ${text}`);
-                    });
+                    if (!response.ok)
+                    {
+                        return response.text().then(text => 
+                        {
+                            throw new Error(`HTTP error ${response.status}: ${text}`);
+                        });
                     }
                         document.querySelector('[name="tweetContent"]').value = '';
                         getTweets(); // Refresh tweets
@@ -252,8 +283,7 @@
             });
 
            
-        
-
+            //JAVASCRIPT CODE FOR LIKING TWEET 
             async function likeTweet(tweetId) {
             try {
                     

@@ -40,6 +40,8 @@ A web application that replicates core functionalities of Twitter using HTML/CSS
 
 I have created and setup a virtual environment which is recommended so that the changes done inside the project file won't affect any other file in the global environment.
 
+
+
 ### To create a virtual environment on terminal
 
 #### If on Linux
@@ -50,7 +52,7 @@ source venv/bin/activate
 python3 -m venv venv
 venv\Scripts\activate
 
-
+``` 
 ###  Testing Your README
 - Commit the formatted `README.md` to your repository.
 - Refresh the repository page on GitHub to see the updated README with the correct formatting.
@@ -68,3 +70,15 @@ The application uses a secret key for token generation and verification. You can
 python
 Copy code
 app.config['SECRET_KEY'] = 'your_secret_key'
+
+## Screenshots
+
+![Login Page](https://github.com/jd20000/TwitterClone_project/blob/main/Screenshot%20(301).png?raw=true)
+![Register Page](https://github.com/jd20000/TwitterClone_project/blob/main/Screenshot%20(302).png?raw=true)
+![Home Page](https://github.com/jd20000/TwitterClone_project/blob/main/Screenshot%20(303).png?raw=true)
+
+![Search User Id](https://github.com/jd20000/TwitterClone_project/blob/main/Screenshot%20(304).png?raw=true)
+![Profile Page](https://github.com/jd20000/TwitterClone_project/blob/main/Screenshot%20(305).png?raw=true)
+![Retweet](https://github.com/jd20000/TwitterClone_project/blob/main/Screenshot%20(306).png?raw=true)
+
+

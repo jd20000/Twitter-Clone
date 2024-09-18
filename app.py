@@ -5,7 +5,7 @@ from flask import flash,redirect,url_for,render_template
 from flask_bcrypt import Bcrypt
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
-import jwt
+import jwt , logging
 import datetime
 
 from functools import wraps
@@ -16,15 +16,20 @@ import os
 from flask_login import LoginManager
 login_manager = LoginManager()
 #######
-
 app = Flask(__name__)
 app.config['WTF_CSRF_ENABLED'] = False
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config['SECRET_KEY'] = '\xf0\xe9\x8d\xf4\x95\xa9\x16\x0e\x8f\x11\xa7\xfb\xbc\x9d\xdb\xcc\xe7\xd4\x93\xea\x7f\x12\x95\xf8'
-app.config['UPLOAD_FOLDER'] =   'templates/profile_pics'
+
+UPLOAD_FOLDER = 'static/profile_pics'
+app.config['UPLOAD_FOLDER'] ='static/profile_pics'
+
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+def allowed_file(filename): 
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 SECRET_KEY = '\xf0\xe9\x8d\xf4\x95\xa9\x16\x0e\x8f\x11\xa7\xfb\xbc\x9d\xdb\xcc\xe7\xd4\x93\xea\x7f\x12\x95\xf8'
-########################
+######################## GENERATE TOKENS , DECODE , TOKEN REQUIRED 
 def generate_token(user_id):
     try:
         payload = {
@@ -37,20 +42,18 @@ def generate_token(user_id):
         print(f"Error generating token: {e}")
         return None
 
-
 def decode_token(token):
+    print(f"Token received for decoding: {token}")
     try:
-        print(token)
-        payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
-        #user_id=payload.get('user_id')
-        #if isinstance(user_id, int) or isinstance(user_id, str):
-        return payload
+        print('token of decode token :',token)
+        decoded_token = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
+        return decoded_token
     except jwt.ExpiredSignatureError:
         print("Token has expired")
-        return None  # Token has expired
-    except jwt.InvalidTokenError:
+        return {'error': 'Token has expired'}   # Token has expired
+    except jwt.InvalidTokenError as e:
         print("Invalid token")
-        return None  # Token is invalid
+        return {'error': 'Invalid token', 'details': str(e)}
      
 def token_required(f):
     @wraps(f)
@@ -59,7 +62,15 @@ def token_required(f):
         if not token:
             return jsonify({'message': 'Token is missing! token required'}), 401
 
+
         decoded_token = decode_token(token)
+        print(f"Token: {token}")
+        print(f"Decoded Token: {decoded_token}")
+        
+        print(decoded_token)
+        if decoded_token is None:
+            return jsonify({'message': 'Token could not be decoded'}), 401
+        
         if 'error' in decoded_token:
             return jsonify({'error': decoded_token['error']}), 401    
 
@@ -72,24 +83,18 @@ def token_required(f):
     return decorated_function
    
 ##########################
-
 bcrypt = Bcrypt()
-
-
-
-
-
 #########################
 @app.route('/api/user', methods=['GET'])
 def get_user():
-    token = request.cookies.get('session')  # Assuming the token is stored in a cookie named 'authToken'
+    token = request.cookies.get('session')  
     
     if not token:
         print("Token is missing from the cookies get user.")
         abort(401, description="Token is missing")
     
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+        payload = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
         user_id = payload.get('user_id')
         if not user_id:
             raise jwt.InvalidTokenError("User ID missing from token")
@@ -98,37 +103,39 @@ def get_user():
         conn = sqlite3.connect('C:/Users/jayde/OneDrive/Desktop/project/twitter_clone.db')
         conn.row_factory = sqlite3.Row  # This allows rows to be accessed like dictionaries
         cursor = conn.cursor()
-        cursor.execute("SELECT username FROM users WHERE id = ?", (user_id,))
+        
+        cursor.execute("SELECT username, email, profile_picture FROM users WHERE id = ?", (user_id,))
         user = cursor.fetchone()
         conn.close()
         
         if user:
-            return jsonify({'username': user['username']})
+            profile_picture_url = None
+            if user['profile_picture']:
+                # Assuming your profile pictures are stored in 'static/profile_pics/'
+                profile_picture_url = f"/static/profile_pics/{user['profile_picture']}"
+            return jsonify({'username': user['username'],
+                            'email': user['email'],
+                            'profile_picture': profile_picture_url
+                            })
         else:
             abort(404, description="User not found")
     
     except jwt.ExpiredSignatureError:
         print("Token has expired")
-        abort(401, description="Token has expired")
+        resp = make_response(abort(401, description="Token has expired"))
+        resp.set_cookie('session', '', expires=0)  # Clear expired token
+        return resp
     except jwt.InvalidTokenError as e:
         print(f"Invalid token: {e}")
-        abort(401, description="Invalid token")
+        resp = make_response(abort(401, description="Invalid token"))
+        resp.set_cookie('session', '', expires=0)  # Clear invalid token
+        return resp
 
 ######  PHOTO UPLOADS 
-UPLOAD_FOLDER = 'templates/profile_pics'
-def allowed_file(filename):
-    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-@app.route('/profile_pics/<filename>')
+@app.route('/static/profile_pics/<filename>')
 def profile_pics(filename):
-    try:
-        return os.path.join(UPLOAD_FOLDER, filename)
-    except FileNotFoundError:
-        abort(404)
-
-
+   return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -182,10 +189,12 @@ def home():
         conn.row_factory = sqlite3.Row 
         cursor = conn.cursor()    
         cursor.execute('''
-            SELECT tweets.id, tweets.content, tweets.created_at, users.username
-            FROM tweets
-            JOIN users ON tweets.user_id = users.id
-            ORDER BY tweets.created_at DESC
+             SELECT tweets.id, tweets.content, tweets.image, tweets.created_at, users.username,
+                    (SELECT COUNT(*) FROM likes WHERE likes.tweet_id = tweets.id) AS like_count,
+                    (SELECT COUNT(*) FROM retweets WHERE retweets.tweet_id = tweets.id) AS retweet_count
+             FROM tweets
+             JOIN users ON tweets.user_id = users.id
+             ORDER BY tweets.created_at DESC
         ''')
         tweets = cursor.fetchall()         
         conn.close()
@@ -273,7 +282,7 @@ def login():
                     token = generate_token(user_id)
                     print(f"Generated Token: {token}")  # Generate the token                 
                     response = make_response(jsonify({'message': 'Login successful', 'home_url': url_for('home')}), 200)
-                    response.set_cookie('session', token, httponly=True, secure=True, samesite='Lax')
+                    response.set_cookie('session', token, httponly=False, secure=False, samesite='Lax')
                     return response
                     #conn.close()
                     #return jsonify({'token': token}), 200
@@ -319,6 +328,7 @@ def profile(username):
 
     cursor.execute('''SELECT * FROM tweets WHERE user_id = ?''', (user_id,))
     tweets = cursor.fetchall()
+    
 
     # Count the number of followers (users who follow the current user)
     cursor.execute('''SELECT COUNT(*) as follower_count FROM followers WHERE following_id = ?''', (user_id,))
@@ -329,7 +339,7 @@ def profile(username):
     following_count = cursor.fetchone()['following_count']
 
     cursor.execute('''
-    SELECT tweets.*, retweets.user_id as retweet_user_id
+    SELECT tweets.*, retweets.user_id as retweet_user_id, tweets.image
     FROM tweets
     LEFT JOIN retweets ON tweets.id = retweets.tweet_id
     WHERE tweets.user_id = ? OR retweets.user_id = ?
@@ -337,65 +347,147 @@ def profile(username):
     ''', (user['id'], user['id']))
 
     tweets = cursor.fetchall()
-    
-
     conn.close()
-
-    return render_template('profile.html', user=user, tweets=tweets, follower_count=follower_count,following_count=following_count)   
     
-          
+    # Prepare tweets data with image URLs
+    tweet_data = []
+    for tweet in tweets:
+        tweet_dict = dict(tweet)
+        if tweet_dict['image']:
+            tweet_dict['image_url'] = url_for('static', filename=f'tweet_images/{tweet_dict["image"]}')
+        else:
+            tweet_dict['image_url'] = None
+        tweet_data.append(tweet_dict)
+
+    # Fix the profile picture URL construction
+    profile_picture_url = None
+    if user["profile_picture"]:
+        profile_picture_url = url_for('static', filename=f'profile_pics/{user["profile_picture"]}') 
+    return render_template('profile.html', user=user, tweets=tweet_data, follower_count=follower_count, following_count=following_count, profile_picture_url=profile_picture_url)
+
+@app.route('/upload_profile_picture', methods=['POST'])
+@token_required
+def upload_profile_picture():
+    token = request.cookies.get('session')
+    decoded_token = decode_token(token)
+    user_id = decoded_token.get('user_id')
+
+    if 'profile_picture' not in request.files:
+        return jsonify({'error': 'No file part'}), 400
+    
+    file = request.files['profile_picture']
+    
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'}), 400
+    
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(file_path)
+        
+        # Update the user's profile picture in the database
+        conn = sqlite3.connect('C:/Users/jayde/OneDrive/Desktop/project/twitter_clone.db')
+        cursor = conn.cursor()
+        cursor.execute('UPDATE users SET profile_picture = ? WHERE id = ?', (filename, user_id))
+        conn.commit()
+        conn.close()
+        
+        new_profile_picture_url = url_for('static', filename=f'profile_pics/{filename}')
+        return jsonify({'message': 'Profile picture updated successfully', 'new_profile_picture_url': new_profile_picture_url})
+    else:
+        return jsonify({'error': 'Invalid file type'}), 400
+
 @app.route('/edit_profile/<username>', methods=['GET', 'POST'])
 def edit_profile(username):
     
+    token = request.cookies.get('session')
+    print(f"Token before update: {token}")
+    print(f"Token retrieved in edit_profile: {token}")
+    
+    if not token:
+        flash('Token is missing. Please log in again.', 'danger')
+        return redirect(url_for('login'))
+
+    try:
+        decoded_token = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
+    except jwt.ExpiredSignatureError:
+        resp = make_response(redirect(url_for('login')))
+        resp.set_cookie('session', '', expires=0)  # Clear invalid token
+        flash('Session expired. Please log in again.', 'danger')
+        return resp
+    except jwt.InvalidTokenError:
+        resp = make_response(redirect(url_for('login')))
+        resp.set_cookie('session', '', expires=0)  # Clear invalid token
+        flash('Invalid token. Please log in again.', 'danger')
+        return resp
+    
+    user_id = decoded_token.get('user_id')
+    if not user_id:
+        flash('User ID is missing from token', 'danger')
+        return redirect(url_for('login'))
 
     conn = sqlite3.connect('C:/Users/jayde/OneDrive/Desktop/project/twitter_clone.db')
     conn.row_factory = sqlite3.Row 
     cursor = conn.cursor()
-    
-    
+
     cursor.execute('''SELECT * FROM users WHERE username = ?''', (username,))
     user = cursor.fetchone()
     
-
     if user is None:
         flash('User not found.', 'danger')
         return redirect(url_for('home'))
 
     form = EditProfileForm(obj=user)
 
-    if form.validate_on_submit():
-        # Fetch form data
-        new_username = form.username.data
-        email = form.email.data
-        bio = form.bio.data
-        profile_picture = form.profile_picture.data
+    if request.method == 'POST' and form.validate_on_submit():
+        try: # Fetch form data
+            new_username = form.username.data
+            email = form.email.data
+            bio = form.bio.data
+            profile_picture = form.profile_picture.data
 
-        if profile_picture and allowed_file(profile_picture.filename):
-            filename = secure_filename(profile_picture.filename)
-            file_path = os.path.join(UPLOAD_FOLDER, filename)
-            profile_picture.save(file_path)
-        else:
-            filename = 'default.jpg'  # Use a default picture if no file is uploaded
-
-
-    
+            if profile_picture and allowed_file(profile_picture.filename):
+                filename = secure_filename(profile_picture.filename)
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                profile_picture.save(file_path)
+            else:
+                filename = user['profile_picture'] if user['profile_picture'] else None
        
             # Update user information in the database
-            cursor.execute('''
-                UPDATE users
-                SET username = ?, email = ?, bio = ?, profile_picture = ?
-                WHERE username = ?
-            ''', (new_username, email, bio, filename, username))
-            conn.commit()
-            flash('Profile updated successfully!', 'success')
-            return redirect(url_for('profile', username=new_username))
-    if user:
-        form.username.data = user['username']
-        form.email.data = user['email']
-        form.bio.data = user['bio']
-        # No need to set profile_picture.data
+                cursor.execute('''
+                    UPDATE users
+                    SET username = ?, email = ?, bio = ?, profile_picture = ?
+                    WHERE username = ?
+                ''', (new_username, email, bio, filename, username))
+                conn.commit()
+                flash('Profile updated successfully!', 'success')
+                
+                # Reset the token cookie after profile update
+                new_token = jwt.encode({'user_id': user_id}, app.config['SECRET_KEY'], algorithm="HS256")
+                resp = make_response(redirect(url_for('profile', username=new_username)))
+                resp.set_cookie('session', new_token, httponly=False, path='/')
+                
+                print(f"Token after update: {token}")
+                return resp
+                
+    
+            if request.method == 'GET':
+                form.username.data = user['username']
+                form.email.data = user['email']
+                form.bio.data = user['bio']
+                # No need to set profile_picture.data
+            
+        except Exception as e:
+            logging.error(f"Error updating form: {e}")
+            flash('An error occurred while updating your profile. Please try again.', 'danger')
+            return redirect(url_for('edit_profile', username=username))
+        finally:
+                    cursor.close()
+                    conn.close()
 
-    return render_template('edit_profile.html', form=form,user=user)
+        
+
+    return render_template('edit_profile.html', form=form, user=user, user_id=user_id)
 ###################
 
 ##### FETCHING THE TWEEEETS FROM THE HOME  
@@ -404,9 +496,8 @@ def handle_tweets():
     # Extract token from cookies
     token = request.cookies.get('session')
     print('Token received for handle_tweets:', token)
-
     # Decode token if present
-    user_id = None
+    user_id = None  
     if token:
         token = token.strip()  
         try:
@@ -421,22 +512,40 @@ def handle_tweets():
             return jsonify({'error': f'Invalid token: {str(e)}'}), 401
     else:
         return jsonify({'error': 'Token is missing '}), 401
+    
     if request.method == 'POST':
-        content = request.json.get('content')
-        if not content:
-            return jsonify({'error': 'Content cannot be empty'}), 400
-
+        
+        # Ensure the request is multipart/form-data
+        if 'multipart/form-data' not in request.content_type:
+            return jsonify({'error': 'Content-Type must be multipart/form-data'}), 415
+        
+        tweet_content = request.form.get('tweetContent')
+        image = request.files.get('image')
         if not user_id:
             return jsonify({'error': 'Unauthorized'}), 401
+        
+        print("Request Form:", tweet_content)
+        print("Request Files:", image)
+            
+        print("The image :",image)
+        image_filename = None
 
+        # Save image if it exists
+        if image and allowed_file(image.filename):
+            image_filename = secure_filename(image.filename)
+            image.save(os.path.join(app.config['UPLOAD_FOLDER'], image_filename))
+            print("Image filename : ",image_filename)
+        elif image:
+            return jsonify({'error': 'Invalid image file'}),401
+        
         conn = sqlite3.connect('C:/Users/jayde/OneDrive/Desktop/project/twitter_clone.db')
         cursor = conn.cursor()
 
         try:
             cursor.execute('''
-                INSERT INTO tweets (content, user_id, created_at)
-                VALUES (?, ?, ?)
-            ''', (content, user_id, datetime.utcnow()))
+                INSERT INTO tweets (content, user_id, created_at, image)
+                VALUES (?, ?, ?, ?)
+            ''', (tweet_content, user_id, datetime.utcnow(), image_filename))
             conn.commit()
             return jsonify({'message': 'Tweet posted successfully!'}), 201
         except sqlite3.Error as e:
@@ -452,12 +561,17 @@ def handle_tweets():
 
         try:
             cursor.execute('''
-                SELECT tweets.id, tweets.content,tweets.created_at, users.username, user_id
+                SELECT tweets.id, tweets.content,tweets.created_at, users.username, user_id , tweets.image,
+                    (SELECT COUNT(*) FROM likes WHERE likes.tweet_id = tweets.id) AS likes,
+                    (SELECT COUNT(*) FROM retweets WHERE retweets.tweet_id = tweets.id) AS reposts,
+                    EXISTS(SELECT 1 FROM likes WHERE likes.tweet_id = tweets.id AND likes.user_id = ?) AS liked_by_user,
+                    EXISTS(SELECT 1 FROM retweets WHERE retweets.tweet_id = tweets.id AND retweets.user_id = ?) AS retweeted_by_user
                 FROM tweets
                 JOIN users ON tweets.user_id = users.id
                 ORDER BY tweets.created_at DESC
-            ''')
+            ''', (user_id, user_id))
             tweets = cursor.fetchall()
+         
 
             tweets_list = [{
 
@@ -465,7 +579,9 @@ def handle_tweets():
                 'content': tweet['content'],
                 'created_at': tweet['created_at'],
                 'username': tweet['username'],
-                'user_id': tweet['user_id']
+                'user_id': tweet['user_id'],
+                'image': tweet['image'] if tweet['image'] else None
+                
             } for tweet in tweets]
             return jsonify(tweets_list), 200
         except sqlite3.Error as e:
@@ -479,19 +595,26 @@ def handle_tweets():
 def like_tweet():
     token = request.cookies.get('session')
     print(f'Token: {token}')
+    
     if not token:
         return jsonify({'error': 'Token is missing'}), 401
+    
     decoded_token = decode_token(token)
     print(f'Decoded Token: {decoded_token}')
+    
     if 'error' in decoded_token:
         return jsonify({'error': decoded_token['error']}), 401
+    
     user_id = decoded_token.get('user_id')
     print(user_id)
+    
     if not user_id:
-        return jsonify({'error': 'User ID is missing from token'}), 401        
+        return jsonify({'error': 'User ID is missing from token'}), 401    
+        
     data = request.get_json()
     tweet_id = data.get('tweetId')
     print(tweet_id)
+    
     if not tweet_id:
         return jsonify({'error': 'Tweet ID is required'}), 400
 
@@ -500,26 +623,41 @@ def like_tweet():
     cursor = conn.cursor() 
 
     try:   
+         # Check if tweet exists
         cursor.execute('SELECT * FROM tweets WHERE id = ?', (tweet_id,))
         tweet = cursor.fetchone()
         if not tweet:
             conn.close()
             return jsonify({'error': 'Tweet not found'}), 404
 
+         # Check if the user has already liked the tweet
         cursor.execute('SELECT * FROM likes WHERE user_id = ? AND tweet_id = ?', (user_id, tweet_id))
         existing_like = cursor.fetchone()
+        
         if existing_like:
-            conn.close()
-            return jsonify({'message': 'Tweet already liked'}), 400
-
-        cursor.execute('INSERT INTO likes (user_id, tweet_id) VALUES (?, ?)', (user_id, tweet_id))
+        # If the user has already liked the tweet, unlike it
+            cursor.execute('DELETE FROM likes WHERE user_id = ? AND tweet_id = ?', (user_id, tweet_id))
+            message = 'Tweet unliked successfully'
+        else:
+            # If the user has not liked the tweet yet, like it
+            cursor.execute('INSERT INTO likes (user_id, tweet_id) VALUES (?, ?)', (user_id, tweet_id))
+            message = 'Tweet liked successfully'
+        
+        # Commit changes
         conn.commit()
+        
+        # Get the updated like count
+        cursor.execute('SELECT COUNT(*) AS like_count FROM likes WHERE tweet_id = ?', (tweet_id,))
+        like_count = cursor.fetchone()['like_count']
+
+        return jsonify({'message': message, 'like_count': like_count})
+    
     except sqlite3.Error as e:
         return jsonify({'error': str(e)}), 500
     finally:
         conn.close()
 
-    return jsonify({'message': 'Tweet liked successfully'})
+    # return jsonify({'message': 'Tweet liked successfully', 'likes': updated_likes})
 
 ## UNLIKING A TWEET 
 @app.route('/api/tweets/unlike', methods=['POST'])

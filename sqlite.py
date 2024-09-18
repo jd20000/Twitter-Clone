@@ -20,7 +20,8 @@ CREATE TABLE IF NOT EXISTS tweets (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     content TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    user_id INTEGER,
+    user_id INTEGER, 
+   image TEXT,
     FOREIGN KEY (user_id) REFERENCES users (id)
 )
 ''')

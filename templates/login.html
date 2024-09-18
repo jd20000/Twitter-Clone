@@ -1,91 +1,132 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Login</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.0.2/dist/tailwind.min.css" rel="stylesheet">
-</head>
-<body class="bg-gray-100">
-    <header class="flex justify-center items-center py-4 bg-blue-600">
-        <div class="container mx-auto text-center">
-            <h1 class="text-xl font-bold text-white">Twitter Clone</h1>
-        </div>
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.0.2/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="bg-gray-100" style="background-color: black">
+    <header class="flex justify-center items-center py-4 bg-black-600">
+      <div class="container mx-auto text-center">
+        <h1 class="text-xl font-bold text-white">Twitter Clone</h1>
+      </div>
     </header>
-    <div class="max-w-md mx-auto mt-8 p-4 bg-white shadow-md">
-        <h1 class="text-2xl font-bold mb-4">Login</h1>
-        <form id="LoginForm" method="POST" action="{{ url_for('login') }}" class="max-w-md mx-auto mt-8 p-6 bg-white rounded-lg shadow-md">
-            <div class="mb-4">
-                <label for="{{ form.username_or_email.id }}" class="block text-gray-700 font-bold mb-2">
-                    {{ form.username_or_email.label }}
-                </label>
-                {{ form.username_or_email(class_="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500") }}
-            </div>
-            
-            <div class="mb-4">
-                <label for="{{ form.password.id }}" class="block text-gray-700 font-bold mb-2">
-                    {{ form.password.label }}
-                </label>
-                {{ form.password(class_="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500") }}
-            </div>
-            
-            <div class="mb-4">
-                <label for="{{ form.remember.id }}" class="inline-flex items-center">
-                    {{ form.remember(class_="mr-2") }}
-                    <span class="text-gray-700">{{ form.remember.label }}</span>
-                </label>
-            </div>
-            
-            <div class="mb-6">
-                {{ form.submit(class_="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600") }}
-            </div>
-            
-            <p class="text-center mt-4">
-                <a href="{{ url_for('register') }}" class="text-blue-500 hover:text-blue-700 font-semibold">Register</a>
-            </p>
-        </form>
+    <div
+      class="max-w-md mx-auto mt-8 p-4 bg-white border border-gray-300 shadow-md"
+      style="background-color: black"
+    >
+      <h1
+        class="text-2xl font-bold mb-4"
+        style="
+          color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        "
+      >
+        Login
+      </h1>
+      <form
+        id="LoginForm"
+        method="POST"
+        action="{{ url_for('login') }}"
+        class="max-w-md mx-auto mt-8 p-6 bg-white rounded-lg shadow-md"
+        style="background-color: black"
+      >
+        <div class="mb-4">
+          <label
+            for="{{ form.username_or_email.id }}"
+            class="block text-gray-700 font-bold mb-2"
+            style="color: white"
+          >
+            {{ form.username_or_email.label }}
+          </label>
+          {{ form.username_or_email(class_="w-full px-3 py-2 border rounded-lg
+          focus:outline-none focus:ring-2 focus:ring-blue-500") }}
+        </div>
+
+        <div class="mb-4">
+          <label
+            for="{{ form.password.id }}"
+            class="block text-gray-700 font-bold mb-2"
+            style="color: white"
+          >
+            {{ form.password.label }}
+          </label>
+          {{ form.password(class_="w-full px-3 py-2 border rounded-lg
+          focus:outline-none focus:ring-2 focus:ring-blue-500") }}
+        </div>
+
+        <div class="mb-4">
+          <label for="{{ form.remember.id }}" class="inline-flex items-center">
+            {{ form.remember(class_="mr-2") }}
+            <span class="text-gray-700" style="color: white"
+              >{{ form.remember.label }}</span
+            >
+          </label>
+        </div>
+
+        <div class="mb-6">
+          {{ form.submit(class_="w-full bg-blue-500 text-white py-2 px-4
+          rounded-lg hover:bg-blue-600") }}
+        </div>
+
+        <p class="text-center mt-4">
+          <a
+            href="{{ url_for('register') }}"
+            class="text-blue-500 hover:text-blue-700 font-semibold"
+            >Register</a
+          >
+        </p>
+      </form>
     </div>
     <script>
-        document.getElementById('LoginForm').addEventListener('submit', async (event) =>{
-            event.preventDefault(); // Prevent the default form submission
-            
-            // Gather login credentials
-            const usernameOrEmail = document.querySelector('[name="username_or_email"]').value;
-            const password = document.querySelector('[name="password"]').value;
-    
-            try {
-                const response = await fetch("/login", { // Adjusted URL
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    },
-                    body: new URLSearchParams({ 
-                        username_or_email: usernameOrEmail, 
-                        password: password 
-                    })
-                });
-    
-                const data = await response.json();
-                console.log(data)
-                if (response.ok) {
-                    // Store the token in localStorage
-                    localStorage.setItem('token', data.token);
-                    console.log('response is ok ')
-                    // Redirect or update UI
-                    window.location.href = data.home_url; // Adjusted URL
-                } else {
-                    // Handle login error
-                    console.error('Login failed:', data.message);
-                    alert(data.message || 'Login failed'); // Show error message to user
-                }
-            } catch (error) {
-                console.error('Error during login:', error);
-                alert('An error occurred during login');
+      document
+        .getElementById("LoginForm")
+        .addEventListener("submit", async (event) => {
+          event.preventDefault(); // Prevent the default form submission
+
+          // Gather login credentials
+          const usernameOrEmail = document.querySelector(
+            '[name="username_or_email"]'
+          ).value;
+          const password = document.querySelector('[name="password"]').value;
+
+          try {
+            const response = await fetch("/login", {
+              // Adjusted URL
+              method: "POST",
+              headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+              },
+              body: new URLSearchParams({
+                username_or_email: usernameOrEmail,
+                password: password,
+              }),
+            });
+
+            const data = await response.json();
+            console.log(data);
+            if (response.ok) {
+              // Store the token in localStorage
+              localStorage.setItem("token", data.token);
+              console.log("response is ok ");
+              // Redirect or update UI
+              window.location.href = data.home_url; // Adjusted URL
+            } else {
+              // Handle login error
+              console.error("Login failed:", data.message);
+              alert(data.message || "Login failed"); // Show error message to user
             }
+          } catch (error) {
+            console.error("Error during login:", error);
+            alert("An error occurred during login");
+          }
         });
     </script>
-
-
-        
-</body>
+  </body>
 </html>

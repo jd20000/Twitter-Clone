@@ -3,32 +3,18 @@ from wtforms import StringField, PasswordField, SubmitField,BooleanField,Validat
 from wtforms.validators import DataRequired, Length,EqualTo,Email
 
 class LoginForm(FlaskForm):
-    username_or_email = StringField('Username or Email', validators=[
-        DataRequired()
-    ])
-    password = PasswordField('Password', validators=[
-        DataRequired()
-    ])
+    username_or_email = StringField('Username or Email', validators=[DataRequired()])
+    password = PasswordField('Password', validators=[DataRequired()])
     submit = SubmitField('Login')
     remember = BooleanField('Remember Me')  # Optional: Include if you have a remember me feature
 
 
 class RegistrationForm(FlaskForm):
-    username = StringField('Username', validators=[
-        DataRequired(), Length(min=2, max=20)
-    ])
-    email = StringField('Email', validators=[
-        DataRequired(), Email()
-    ])
-    password_hash = PasswordField('password_hash', validators=[
-        DataRequired()
-    ])
-    confirm_password = PasswordField('Confirm Password', validators=[
-        DataRequired(), EqualTo('password_hash', message='Passwords must match')
-    ])
+    username = StringField('Username', validators=[DataRequired(), Length(min=2, max=20)])
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    password_hash = PasswordField('Password', validators=[DataRequired()])
+    confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password_hash', message='Passwords must match')])
     submit = SubmitField('Register')
-    # The remember field is generally used in login forms
-    # Remove or comment out if not needed for registration
     remember = BooleanField('Remember Me')
 
 class EditProfileForm(FlaskForm):
@@ -40,4 +26,5 @@ class EditProfileForm(FlaskForm):
 
 class TweetForm(FlaskForm):
     tweetContent = TextAreaField('Tweet', validators=[DataRequired()])
+    image = FileField('Image')
     submit = SubmitField('Tweet')   

@@ -1,86 +1,268 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home | Twitter Clone</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">  
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"> 
+    <style>
+        .logo{
+            padding-bottom: 20%;
+        }
+        /* Make the left sidebar fixed */
+        aside.left-sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 25%;
+            background-color: black ;
+            padding-top : 0px; /* Adjust for logo header */
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Center items horizontally */
+            justify-content: flex-start; /* Align items to the top */
+        }
+        aside.left-sidebar nav ul {
+            width: 100%; /* Full width of the sidebar */
+            padding: 0;
+            margin: 0;
+            list-style-type: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Center items horizontally */
+        }
+        /* Adjust the padding and margin of links within the sidebar */
+        aside.left-sidebar nav ul li {
+            width: 100%; /* Full width for each list item */
+            text-align: center; /* Center text inside each item */
+        }
+        /* Shifting the left sidebar items slightly to the left */
+        aside.left-sidebar nav ul li a {
+            display: block;
+            padding: 0.5rem 1rem; /* Adjust padding as needed */
+            color: white;
+            text-decoration: none;
+        }   
+
+        /* Make the right sidebar fixed */
+        aside.right-sidebar {
+            position: fixed;
+            top: 10;
+            right: 0;
+            height: 100vh;
+            width: 25%;
+            background-color: black; 
+        }
+
+        /* Add padding to the top to make space for the fixed header */
+        main {
+            padding-top: 0;
+        }
+
+        /* Make the middle section scrollable */
+        section.middle-section {
+            margin-left: 25%;
+            margin-right: 25%;
+            max-height: 100vh; /* Full height */
+            overflow-y: hidden;
+            padding-top: 0;
+            border-left: 1px solid gray; /* Gray border on the left */
+            border-right: 1px solid gray; /* Gray border on the right */
+        }
+        /* Middle section  tweet form fixed */
+        .tweet-form-container {
+            position: sticky;
+            top: 0;
+            bottom: 0;
+            background-color: black;
+            margin-bottom: 0%;
+            padding-bottom: 0%;
+            z-index: 10;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid gray; /* Add border between form and tweets */
+            
+        }
+        /* Form styling */
+        .tweet-form-container .scaled-form {
+            max-width: 100%; /* Ensure the form can expand within the container */
+            width: 100%;
+            padding-left:5px ;
+            padding-right: 0;
+            padding-bottom: 0;
+            padding-top: 3;
+        }
+        /* Adjust the tweet container */
+        #tweetsContainer {
+            top: 0;
+            max-height: 80vh;
+            overflow-y: auto; /* Enable scrolling */
+            padding-right: 10px; /* Optional: Add space to prevent content cutting off */
+        }
+        /* Hide the scrollbar for the tweet container */
+        #tweetsContainer::-webkit-scrollbar {
+            width: 0; /* Removes the scrollbar */
+        }
+
+        #tweetsContainer::-webkit-scrollbar-thumb {
+            display: none; /* Ensures no scrollbar thumb is visible */
+        }
+
+        #tweetsContainer {
+            -ms-overflow-style: none; /* For Internet Explorer and Edge */
+            scrollbar-width: none; /* For Firefox */
+        }
+        /* Scrollbar */
+        section.middle-section::-webkit-scrollbar {
+            width: 0; /* Removes the scrollbar */
+        }
+        section.middle-section::-webkit-scrollbar-thumb {
+            background-color: gray;
+            border-radius: 8px;
+            border-color: gray;
+            border-top: #000;
+            border-bottom: #000;
+            display: none; /* Ensures no scrollbar thumb is visible */
+        }
+
+        section.middle-section::-webkit-scrollbar-track {
+            background: #000;
+        }
+        /* Icons for the left section */
+        nav ul li a i {
+            margin-left: 8px;
+        }
+
+        /* Modernize search bar */
+        input#searchQuery {
+            border: none;
+            background-color: #333;
+            color: white;
+            border-radius: 30px;
+            padding: 10px 16px;
+            width: 100%;
+        }
+        input#searchQuery::placeholder {
+            color: gray;
+        }
+        button[type="submit"] {
+            border-radius: 30px;
+            padding: 10px 16px;
+        }
+        /* Reducing the size of the tweet form and search bar by 25% */
+        .scaled-form, .scaled-search {
+            transform: scale(0.90); /* Reduces size to 75% of original */
+            transform-origin: top left; /* Ensure it scales from the top left */
+        }
+        .scaled-form{
+            padding: 0%;
+            margin: 0%;
+        }
+        .texta{
+            padding-left: 5px;
+        }
+        /* Highlighted: Tweet image styling */
+        .tweet-image {
+        max-width: 100%; /* Ensures the image doesn't overflow the container */
+        max-height: 400px; /* Optional: Set a maximum height to avoid excessively large images */
+        width: auto; /* Let the width adjust automatically */
+        height: auto; /* Let the height adjust automatically */
+        object-fit: contain; /* Ensures the image fits within its container without being cropped or distorted */
+        display: block; /* Ensures the image behaves as a block-level element */
+        margin: 0 auto; /* Center the image horizontally */
+        }
+    </style> 
 </head>
-<body class="bg-gray-100">
-    <header class="bg-blue-600 text-white p-4"> 
-        <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-xl font-bold">Twitter Clone</h1>
-            <nav>
-                <a href="{{ url_for('home') }}" class="px-4 py-2 hover:bg-violet-700 rounded class=bg-black-500 opacity-100 rounded">Home</a>
-                <a  id="profileLink" href="#" class="px-4 py-2 hover:bg-blue-700 rounded">Profile</a>
-                <a href="#" id="logout" class="px-4 py-2 hover:bg-blue-700 rounded">Logout</a>
+<body class="bg-gray-100" style="background-color: rgb(0,0,0)">
+    <main class="container mx-auto mt-6 flex">
+        <!-- Left Sidebar (25%) -->
+        <aside class="left-sidebar w-1/4 p-4 text-white rounded-lg">
+            <header class="logo bg-black text-white p-4"> 
+                <div class="container mx-auto flex justify-between items-center">
+                    <h1 class="logo text-xl font-bold">Twitter Clone</h1>
+                </div>
+            </header>
+            <nav class="mt-6">
+                <ul class="space-y-4">
+                    <li><a href="{{ url_for('home') }}" class="block px-4 py-2 hover:bg-violet-700 rounded">
+                            <i class="fa-solid fa-house"></i> Home
+                        </a>
+                    </li>
+                    <li><a id="profileLink" href="#" class="block px-4 py-2 hover:bg-blue-700 rounded">
+                            <i class="fa-solid fa-user"></i>Profile
+                        </a>
+                    </li>
+                    <li><a href="#" id="logout" class="block px-4 py-2 hover:bg-blue-700 rounded">
+                            <i class="fa-solid fa-right-from-bracket"></i> Logout
+                        </a>
+                    </li>
+                </ul>
             </nav>
-        </div>
-    </header>
-    
-    <main class="container mx-auto mt-6">
-          <!-- Search Form -->
-        <div class="bg-white p-4 rounded shadow mb-6">
-            <h2 class="text-lg font-semibold mb-2">Search</h2>
-            <form id="searchForm">
+        </aside>
+
+        <!-- Middle Section (50%) - Tweet Feed and Post Tweet -->
+        <section class="middle-section w-1/2 border border-gray-300  mx-6 relative" >
+            
+            <div class="tweet-form-container">
+                <div class="bg-black p-4 rounded shadow scaled-form">
+                    <h2 class="text-lg font-semibold mb-2 text-white">What's happening?</h2>
+                    <form id="TweetForm" enctype="multipart/form-data">
+                        <div class="mb-4">
+                            <textarea name="tweetContent" class="texta w-full border-gray-300 rounded bg-black text-white" placeholder="What's happening?"></textarea>
+                            <input type="file" name="image" class="mt-2 hidden" id="tweetImage" accept="image/*">
+                                <label for="tweetImage" class="bg-gray-800 text-white px-4 py-2 rounded cursor-pointer">Choose an image</label>
+                                <span id="fileName" class="text-white ml-2"></span> <!-- File name will be displayed here -->
+                            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded mt-2">Tweet</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div id="tweetsContainer" class="mt-6" h-[60vh] overflow-y-auto pr-4 style="top:0;">
+                {% for tweet in tweets %}
+                <div class="tweet bg-white p-4 rounded shadow mb-4" id="tweet-{{ tweet.id }}">
+                    <p class="font-bold">{{ tweet.username }}</p>
+                    <p>{{ tweet.content }}</p>
+                    {% if tweet.image %}
+                        <img src="/static/profile_pics/{{ tweet.image }}" alt="Tweet image" class="mt-2 w-full max-h-60 object-contain rounded">
+                    {% endif %}
+                    <div class="flex space-x-2 mt-2">
+                        <button id="like-btn-${tweet.id}"onclick="toggleLikeTweet(${tweet.id}, ${tweet.liked_by_user}, ${tweet.likes})" class="like-button flex items-center text-blue-500 hover:text-blue-700 focus:outline-none">
+                            <i class="fa-regular fa-thumbs-up mr-1"></i>
+                            <span id="like-count-{{ tweet.id }}">{{ tweet.like_count }}</span> Like
+                        </button>
+                        <button class="retweet-button flex items-center text-green-500 hover:text-green-700 focus:outline-none">   
+                            </i> Retweet</button>
+                        <button class="undo-retweet-button flex items-center text-yellow-500 hover:text-yellow-700 focus:outline-none">
+                            <i class="fa-solid fa-undo mr-1"></i> Undo Retweet</button>
+                        <span id="retweet-count-{{ tweet.id }}">{{ tweet.retweet_count }}</span>
+                    </div>
+                    <small class="text-gray-600 mt-2">{{ tweet.created_at }}</small> 
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- Right Sidebar (25%) -->
+        <aside class="right-sidebar w-1/4  p-4 text-white rounded-lg">
+            <h2 class="text-lg font-semibold mb-4">Search</h2>
+            <form id="searchForm" class="scaled-search">
                 <div class="mb-4">
                     <input type="text" id="searchQuery" class="w-full border-gray-300 rounded" placeholder="Search users and tweets">
                 </div>
                 <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Search</button>
             </form>
-        </div>
-
-        <!-- Search Results -->
-        <div id="searchResults" class="mt-4" >
-            <!-- Search results will be injected here -->
-        </div>
-        <!-- Tweet Composition Form -->
-        <div class="bg-white p-4 rounded shadow">
-            <h2 class="text-lg font-semibold mb-2">What's happening?</h2>
-            <form id="TweetForm">
-                <div class="mb-4">
-                    <textarea name="tweetContent" class="w-full border-gray-300 rounded" placeholder="What's happening?"></textarea>
-                </div>
-                <div>
-                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded mt-2">Tweet</button>
-                </div>
-            </form>                      
-        </div>
-
-        <!-- Tweets Feed -->
-        <div class="mt-6">
-            <h2 class="text-lg font-semibold mb-2">Home Feed</h2>
-            <div id="tweetsContainer">
-                <!-- Tweets will be injected here -->
-                {% for tweet in tweets %}
-                <div class="bg-white p-4 rounded shadow mb-4">
-                    <p class="font-semibold">{{ tweet.username }}</p>
-                    <p>{{ tweet.content }}</p>
-                    <div class="flex space-x-2 mt-2">
-                        <div class="tweet-actions">
-                            <div class="tweet-actions flex items-center space-x-4"></div>
-                                <button class="like-button flex items-center text-blue-500 hover:text-blue-700 focus:outline-none"><i class="fa-regular fa-thumbs-up mr-1"></i> Like</button>
-                                <button class="unlike-button flex items-center text-red-500 hover:text-red-700 focus:outline-none"><i class="fa-regular fa-thumbs-down mr-1"></i>Unlike</button>
-                                <button class="retweet-button flex items-center text-green-500 hover:text-green-700 focus:outline-none"><i class="fa-solid fa-retweet mr-1"></i>Retweet</button>
-                                <button class="undo-retweet-button flex items-center text-yellow-500 hover:text-yellow-700 focus:outline-none"><i class="fa-solid fa-undo mr-1"></i>Undo Retweet</button>
-                                <button class="bg-blue-500 text-white px-2 py-1 rounded">Follow</button>
-                                <button class="bg-red-500 text-white px-2 py-1 rounded">Unfollow</button>
-                        </div>
-                    </div>
-                </div> <!-- This closes each tweet's container -->
-                {% endfor %}
-            </div> <!-- This closes the tweetsContainer div -->
-        </div> <!-- This closes the mt-6 div -->
-        
+            <div id="searchResults" class="mt-4"></div>
+        </aside>
     </main>
 
     <script>
+        
         //JAVASCRIPT CODE FOR ACCESING CURRENT USER  
     document.addEventListener('DOMContentLoaded', () =>
         {
             const token = localStorage.getItem('token');
-
+            getTweets();    
             if (token)
             {
                 // Fetch user details to set the profile link dynamically
@@ -148,6 +330,14 @@
         
         async function getTweets() 
         {     
+            //Debug for button clicks. 
+        document.addEventListener('click', (event) => {
+    if (event.target.matches('.like-btn')) {
+        console.log('Like button clicked');
+    } else if (event.target.matches('.retweet-btn')) {
+        console.log('Retweet button clicked');
+    }   
+        });
         try{
             const response = await fetch(`/api/tweets`, {
                 method: 'GET',
@@ -156,42 +346,179 @@
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
                 });
+                if (!response.ok) 
+                {
+                    const errorText = await response.text();
+                    throw new Error(errorText || 'Error fetching tweets');
+                }
 
+                const tweets = await response.json();
         
-        
-            if (!response.ok) 
-            {
-                const errorText = await response.text();
-                throw new Error(tweets.error || 'Error fetching tweets');
-            }
-            const tweets = await response.json();
-       
-
             // Rendering tweets on the page
-            const tweetContainer = document.getElementById('tweetsContainer');
-            tweetContainer.innerHTML = tweets.map(tweet => `
-            <div class="tweet bg-white p-4 mb-4 rounded shadow-md">
-                <p class="text-gray-800">${tweet.content}</p>
-                <small class="text-gray-600">${tweet.username}</small>
-                <div class="flex space-x-2 mt-2">
-                    <button onclick="likeTweet(${tweet.id})" class="like-button flex items-center text-blue-500 hover:text-blue-700 focus:outline-none"><i class="fa-regular fa-thumbs-up mr-1"></i>Like</button>
-                    <button onclick="unlikeTweet(${tweet.id})" class="unlike-button flex items-center text-red-500 hover:text-red-700 focus:outline-none"><i class="fa-regular fa-thumbs-down mr-1"></i>Unlike</button>
-                    <button onclick="retweetTweet(${tweet.id})" class="retweet-button flex items-center text-green-500 hover:text-green-700 focus:outline-none"><i class="fa-solid fa-retweet mr-1"></i>Retweet</button>
-                    <button onclick="undoRetweet(${tweet.id})" class="undo-retweet-button flex items-center text-yellow-500 hover:text-yellow-700 focus:outline-none"><i class="fa-solid fa-undo mr-1"></i>Undo Retweet</button>
-                    <button onclick="followUser(${tweet.user_id})" class="bg-blue-500 text-white px-2 py-1 rounded">Follow</button>
-                    <button onclick="unfollowUser(${tweet.user_id})" class="bg-red-500 text-white px-2 py-1 rounded">Unfollow</button>
+                const tweetContainer = document.getElementById('tweetsContainer');
+                tweetContainer.innerHTML = tweets.map(tweet => `
+                <div class="tweet bg-white p-4 mb-4 rounded shadow-md" style="background-color:black; border: 1px solid gray;">
+                    <small class="font-bold" style="color:white">${tweet.username}</small>
+                    <p class="text-gray-800" style="color:white">${tweet.content}</p>
+                    ${tweet.image ? `<img src="/static/profile_pics/${tweet.image}" alt="Tweet image" class="mt-2 w-full max-h-60 object-contain rounded" style="border: 1px solid gray;">` : ''} 
+                    <div class="flex space-x-2 mt-2">
+                        <!-- Like / Unlike (Toggle) -->
+                        <button id="like-btn-${tweet.id}" class=" like-btn ${tweet.likedByUser ? 'liked' : ''} flex items-center text-blue-500 hover:text-blue-700 focus:outline-none" onclick="toggleLikeTweet(${tweet.id}, ${tweet.liked_by_user}, ${tweet.likes})">
+                            <i class="fa-regular fa-thumbs-up mr-1"></i>
+                            <span id="like-count-${tweet.id}">${tweet.likeCount || 0}</span> ${tweet.liked_by_user ? 'Liked' : 'Like'}
+                        </button>
+         
+                        <!-- Retweet / Undo Retweet -->
+                        <button onclick="${tweet.retweeted_by_user ? `undoRetweet(${tweet.id})` : `retweetTweet(${tweet.id})`}" class="retweet-button flex items-center text-green-500 hover:text-green-700 focus:outline-none">
+                            <i class="fa-solid fa-retweet mr-1"></i> 
+                            <span>${tweet.reposts || 0} ${tweet.retweeted_by_user ? 'Undo Retweet' : 'Retweet'}</span>
+                        </button>
+                    </div>
+                    <small class="text-gray-600"style="color:white">${tweet.created_at}</small>
                 </div>
-                <small class="text-gray-600">${tweet.created_at}</small>
-            </div>
-            `).join('');
-
-        } 
+                `).join('');
+                 // Attach event listeners after rendering
+                attachEventListeners(tweets);
+                }
         catch (error) 
         {
-        console.error('Error fetching tweets:', error);
+            console.error('Error fetching user details:', error);
+            console.error('Error details:', error.message);
+        }   
+    } 
+    document.getElementById('tweetsContainer').addEventListener('click', (event) => {
+    if (event.target.matches('.like-btn')) {
+        const tweetId = event.target.id.replace('like-btn-', '');
+        console.log('Like button clicked for Tweet ID:', tweetId);
+        toggleLikeTweet(tweetId);
+    } else if (event.target.matches('.retweet-btn')) {
+        const tweetId = event.target.id.replace('retweet-btn-', '');
+        console.log('Retweet button clicked for Tweet ID:', tweetId);
+        if (event.target.textContent.includes('Undo Retweet')) {
+            undoRetweet(tweetId);
+        } else {
+            retweetTweet(tweetId);
         }
+    }
+});
+
+    function attachEventListeners(tweets) {
+        if (!Array.isArray(tweets)) {
+        console.error('Invalid tweets data:', tweets);
+        return;
+    }   
+    tweets.forEach(tweet => {
+        // Like / Unlike
+        const likeButton = document.getElementById(`like-btn-${tweet.id}`);
+        const likedByUser = tweet.liked_by_user; // Fetch liked status
+        const currentLikes = tweet.like_count; // Fetch current like count
+        if (likeButton) {
+            likeButton.addEventListener('click', () => {
+                console.log('Tweet ID in click handler:', tweet.id);
+                toggleLikeTweet(tweet.id, likedByUser, currentLikes);
+            });
         }
-            //JAVASCRIPT CODE FOR SEARCH BAR
+        // Retweet / Undo Retweet
+        const retweetButton = document.getElementById(`retweet-btn-${tweet.id}`);
+        if (retweetButton) {
+            retweetButton.addEventListener('click', () => {
+                const tweetId = tweet.id;
+                if (tweet.retweeted_by_user) {
+                    undoRetweet(tweetId);
+                } else {
+                    retweetTweet(tweetId);
+                }
+            });
+        }
+    });
+}
+    //TweetImage on choose image
+    document.getElementById('tweetImage').addEventListener('change', function(event) {
+    const fileNameDisplay = document.getElementById('fileName');
+    const file = event.target.files[0]; // Get the selected file
+    if (file) {
+        fileNameDisplay.textContent = file.name; // Set file name in the span element
+    } else 
+    {
+            fileNameDisplay.textContent = ''; // Clear if no file is selected
+        }
+        });
+      
+        //JAVASCRIPT FOR TOGGLE BOTH 
+        async function toggleLikeTweet(tweetId, likedByUser, currentLikes) {
+            console.log('Tweet ID of LIKE:', tweetId); // Debug log
+            try {
+                const response = await fetch('/api/tweets/like', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ tweetId })
+                });
+                if (!response.ok) {
+                     throw new Error('Failed to like/unlike the tweet');
+                    }
+                // .then(response => response.json())
+                // .then(response => {
+                //     if (!response.error) {
+                //     // Update the like count in the HTML
+                //     const likeCountElement = document.getElementById(`like-count-${tweetId}`);
+                //     likeCountElement.textContent = response.like_count;
+                //     } else {
+                //     console.error(response.error);
+                //     }
+                // })
+                // .catch(error => console.error('Error:', error));
+                
+                const result = await response.json();
+                console.log('Response Data:', result);
+
+                // Check if like_count is present in the response data
+                if (result.like_count === undefined) {
+                    throw new Error('Like count is missing from the response');
+                }
+
+                const likeCountElement = document.querySelector(`#like-count-${tweetId}`);
+                if (likeCountElement) {
+                    likeCountElement.textContent = result.like_count;
+                }
+                else {
+                console.warn(`Like count element for tweet ID ${tweetId} not found`);
+                }
+               
+            //
+
+            // Update the like count and button state
+        
+    } catch (error) {
+        console.error('Error toggling like:', error);
+    }
+}
+function toggleRetweet(tweetId) {
+    fetch(`/api/tweets/retweet`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ tweetId: tweetId }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (!data.error) {
+            // Update the retweet count in the HTML
+            const retweetCountElement = document.getElementById(`retweet-count-${tweetId}`);
+            retweetCountElement.textContent = data.retweet_count;
+        } else {
+            console.error(data.error);
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+
+        //JAVASCRIPT CODE FOR SEARCH BAR
         document.addEventListener('DOMContentLoaded', () => 
         {
             const searchForm = document.getElementById('searchForm');
@@ -246,38 +573,61 @@
                 searchResults.innerHTML = `<p>Error fetching search results: ${error.message}</p>`;
             }
         });
-        });         //JAVASCRIPT CODE FOR HANDLING TWEETS 
+        });         
+        //JAVASCRIPT CODE FOR HANDLING TWEETS 
             document.getElementById('TweetForm').addEventListener('submit', async (event) => 
             {
                 event.preventDefault();
+                const form = document.querySelector('form');
                 const tweetContent = document.querySelector('[name="tweetContent"]').value;
-                //const token = localStorage.getItem('token');
+                const image = document.querySelector('[name="image"]').files[0];
+                console.log('Tweet Content:', tweetContent);
 
+                const formData = new FormData(form);
+                if(tweetContent)
+                {
+                    console.log(tweetContent)
+                }
+                formData.append('tweetContent', tweetContent);
+                if (image) 
+                {
+                    formData.append('image', image);
+                    console.log("Image there ");
+                }
+                if(!formData.null)
+                {
+                    console.log("Form Data not NUll")
+                }
+                //const token = localStorage.getItem('token');
                 try 
                 {
                     const response = await fetch('/api/tweets', 
                     {
                         method: 'POST',
                         headers: 
-                        { 
-                            'Content-Type': 'application/json',
+                        {
                             'Authorization': `Bearer ${localStorage.getItem('token')}`
                         },
                         credentials: 'include',
-                        body: JSON.stringify({ content: tweetContent })
+                        body: formData
                     });
+
                     if (!response.ok)
                     {
-                        return response.text().then(text => 
-                        {
-                            throw new Error(`HTTP error ${response.status}: ${text}`);
-                        });
+                        console.log("Something wrong with response on html")
+                        alert('An error occurred while fetching tweets: ' + error.message);
+                        const text = await response.text();
+                        throw new Error(`HTTP error ${response.status}: ${text}`);
                     }
                         document.querySelector('[name="tweetContent"]').value = '';
+                        document.querySelector('[name="image"]').value = '';
+                        document.getElementById('tweetImage').value = ''; // Clear file input
+                        document.getElementById('fileName').textContent = '';//Clear the filename 
                         getTweets(); // Refresh tweets
                  
                     
-                } catch (error) {
+                } 
+                catch (error) {
                     console.error('Error posting tweet :', error);
                 }
             });
@@ -294,14 +644,29 @@
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                             },
                         credentials: 'include',
-                            body: JSON.stringify({ tweetId })
+                        body: JSON.stringify({ tweetId })
                         });
+
                         const result = await response.json();
+
                         if (!response.ok) {
                             throw new Error(result.error);
-                            }
+                        }
+                        
                         console.log(result.message);
-                        getTweets(); // Refresh tweets
+
+                         // Update the like count dynamically
+                        const likeCountElement = document.querySelector(`#like-count-${tweetId}`);
+                        if (likeCountElement) 
+                        {
+                            likeCountElement.textContent = parseInt(likeCountElement.textContent) + 1;  // Increment like count
+                        }
+
+                        // Toggle the button visibility
+                        document.querySelector(`.like-btn[data-tweet-id="${tweetId}"]`).style.display = 'none';
+                        document.querySelector(`.unlike-btn[data-tweet-id="${tweetId}"]`).style.display = 'inline-block';
+                        
+                        // getTweets(); // Refresh tweets
                         } catch (error) {
                         console.error('Error liking tweet:', error);
                     }
@@ -323,7 +688,18 @@
                     throw new Error(result.error);
                     }
                     console.log(result.message);
-                    getTweets(); // Refresh tweets
+                     // Update the like count dynamically
+                    const likeCountElement = document.querySelector(`#like-count-${tweetId}`);
+                    if (likeCountElement)
+                    {
+                        likeCountElement.textContent = parseInt(likeCountElement.textContent) - 1;  // Decrement like count
+                    }
+
+                     // Toggle the button visibility
+                    document.querySelector(`.like-btn[data-tweet-id="${tweetId}"]`).style.display = 'inline-block';
+                    document.querySelector(`.unlike-btn[data-tweet-id="${tweetId}"]`).style.display = 'none';
+
+                    //getTweets(); // Refresh tweets
                     } catch (error) {
                     console.error('Error unliking tweet:', error);
                     }
@@ -351,7 +727,6 @@
                     console.error('Error retweeting tweet:', error);
                     }
                     }
-
 
             async function undoRetweet(tweetId) {
             try {
@@ -425,9 +800,6 @@
                 console.error('Error unfollowing user:', error);
             }
         }
-
-        
-              
     </script>
 </body>
 </html>

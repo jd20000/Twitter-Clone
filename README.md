@@ -1,8 +1,6 @@
 # Twitter Clone Web Application
 
 A web application that replicates core functionalities of Twitter using HTML/CSS/Tailwind for the frontend and Python with Jinja2 and SQLite for the backend.
-![Twitter Clone Banner](https://github.com/jd20000/TwitterClone_project/blob/main/Screenshot%20(303).png?raw=true)
-
 ## Table of Contents
 
 - [Features](#features)

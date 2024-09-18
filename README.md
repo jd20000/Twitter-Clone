@@ -60,10 +60,15 @@ app.config['SECRET_KEY'] = '\xf0\xe9\x8d\xf4\x95\xa9\x16\x0e\x8f\x11\xa7\xfb\xbc
 
 ## Screenshots
 
+#LOGIN PAGE
 ![Login Page](https://github.com/jd20000/Twitter-Clone/blob/main/screenshots/Screenshot%20(312).png)
+#REGISTER PAGE
 ![Register Page](https://github.com/jd20000/Twitter-Clone/blob/main/screenshots/Screenshot%20(311).png)
+#HOME PAGE
 ![Home Page](https://github.com/jd20000/Twitter-Clone/blob/main/screenshots/Screenshot%20(313).png)
+#PROFILE PAGE
 ![Profile Page](https://github.com/jd20000/Twitter-Clone/blob/main/screenshots/Screenshot%20(314).png)
+#SEARCH
 ![Search User ](https://github.com/jd20000/Twitter-Clone/blob/main/screenshots/Screenshot%20(316).png)
 
 

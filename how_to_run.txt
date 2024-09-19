@@ -1,0 +1,8 @@
+#1. To run the file we need to setup an environment first. that is in config.sh
+#2. After setting an local environment , and importing all the  necessary libraries, we can run the file. The file will run the following steps:
+#3. On Terminal type : 
+    " python run.py"
+#4. On bashing the above code on terminal , an local developement server starts and our webapp is active locally on localhost 5000
+#5. We can directly use "ctrl + click" on the server link that will redirect you to the webapp on the default  browser.
+    Or we can select the link and copy it and paste in any browser of your choice. 
+#6.  Once the webapp is active, we can see the home page of the webapp. We can perform the desired actions on the webapp. 

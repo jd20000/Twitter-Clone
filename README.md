@@ -54,8 +54,7 @@ venv\Scripts\activate
 Configuration
 The application uses a secret key for token generation and verification. You can find and modify it in the app.py file.
 
-python
-Copy code
+
 app.config['SECRET_KEY'] = '\xf0\xe9\x8d\xf4\x95\xa9\x16\x0e\x8f\x11\xa7\xfb\xbc\x9d\xdb\xcc\xe7\xd4\x93\xea\x7f\x12\x95\xf8'
 
 ## Screenshots

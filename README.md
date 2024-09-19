@@ -1,8 +1,6 @@
 # Twitter Clone Web Application
 
 A web application that replicates core functionalities of Twitter using HTML/CSS/Tailwind for the frontend and Python with Jinja2 and SQLite for the backend.
-![Twitter Clone Banner](https://github.com/jd20000/TwitterClone_project/blob/main/Screenshot%20(303).png?raw=true)
-
 ## Table of Contents
 
 - [Features](#features)
@@ -53,27 +51,24 @@ python3 -m venv venv
 venv\Scripts\activate
 
 ``` 
-###  Testing Your README
-- Commit the formatted `README.md` to your repository.
-- Refresh the repository page on GitHub to see the updated README with the correct formatting.
-
-###  Additional Tips
-- **Use Online Markdown Editors**: Tools like [StackEdit](https://stackedit.io/) or [Dillinger](https://dillinger.io/) provide live previews.
-- **Markdown Preview in Editors**: IDEs like VSCode have Markdown preview features built-in.
-
 Configuration
 The application uses a secret key for token generation and verification. You can find and modify it in the app.py file.
 
 python
 Copy code
-app.config['SECRET_KEY'] = 'your_secret_key'
+app.config['SECRET_KEY'] = '\xf0\xe9\x8d\xf4\x95\xa9\x16\x0e\x8f\x11\xa7\xfb\xbc\x9d\xdb\xcc\xe7\xd4\x93\xea\x7f\x12\x95\xf8'
 
 ## Screenshots
 
-![Login Page](https://github.com/jd20000/TwitterClone_project/blob/main/Screenshot%20(301).png?raw=true)
-![Register Page](https://github.com/jd20000/TwitterClone_project/blob/main/Screenshot%20(302).png?raw=true)
-![Search User Id](https://github.com/jd20000/TwitterClone_project/blob/main/Screenshot%20(304).png?raw=true)
-![Profile Page](https://github.com/jd20000/TwitterClone_project/blob/main/Screenshot%20(305).png?raw=true)
-![Retweet](https://github.com/jd20000/TwitterClone_project/blob/main/Screenshot%20(306).png?raw=true)
+LOGIN PAGE
+![Login Page](https://github.com/jd20000/Twitter-Clone/blob/main/screenshots/Screenshot%20(312).png)
+REGISTER PAGE
+![Register Page](https://github.com/jd20000/Twitter-Clone/blob/main/screenshots/Screenshot%20(311).png)
+HOME PAGE
+![Home Page](https://github.com/jd20000/Twitter-Clone/blob/main/screenshots/Screenshot%20(313).png)
+PROFILE PAGE
+![Profile Page](https://github.com/jd20000/Twitter-Clone/blob/main/screenshots/Screenshot%20(314).png)
+SEARCH
+![Search User ](https://github.com/jd20000/Twitter-Clone/blob/main/screenshots/Screenshot%20(316).png)
 
 
